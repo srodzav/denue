@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Inegi Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        html, body, #map { height: 100%; margin: 0; }
+        .panel {
+            position: absolute; z-index: 1000; top: 10px; left: 10px;
+            background: #fff; padding: 8px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.15);
+            font-family: system-ui, sans-serif; font-size: 14px;
+        }
+        .panel input { width: 130px; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <label>Query: <input id="q" value="taqueria"></label>
+        <label>Lat: <input id="lat" value="22.1455"></label>
+        <label>Lng: <input id="lng" value="-100.9883"></label>
+        <label>Radio (m): <input id="r" value="1000"></label>
+        <button id="btn">Search</button>
+    </div>
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Ajusta esta URL a tu API .NET
+        const API_BASE = "http://localhost:5163";
+    
+        const map = L.map('map').setView([22.1455, -100.9883], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+    
+        let layerGroup = L.layerGroup().addTo(map);
+        let circle;
+    
+        async function search() {
+            const q   = document.getElementById('q').value.trim();
+            const lat = parseFloat(document.getElementById('lat').value);
+            const lng = parseFloat(document.getElementById('lng').value);
+            const rad = parseInt(document.getElementById('r').value, 10);
+    
+            const url = `${API_BASE}/denue/search?query=${encodeURIComponent(q)}&lat=${lat}&lng=${lng}&radius=${rad}`;
+            const res = await fetch(url);
+            const data = await res.json(); // data (name, lat, lng, rad)
+    
+            layerGroup.clearLayers();
+            if (circle) map.removeLayer(circle);
+    
+            const bounds = [];
+            data.forEach(p => {
+                const la = parseFloat(p.Latitud);
+                const lo = parseFloat(p.Longitud);
+                if (Number.isFinite(la) && Number.isFinite(lo)) {
+                    const popup = `
+                        <strong>${p.Nombre ?? 'N/A'}</strong><br/>
+                        ${p.Calle ?? ''} ${p.Num_Exterior ?? ''}, ${p.Colonia ?? ''}<br/>
+                        ${p.Ubicacion ?? ''}<br/>
+                        <small>Tel: ${p.Telefono || '—'}</small>`;
+                    L.marker([la, lo]).addTo(layerGroup).bindPopup(popup);
+                    bounds.push([la, lo]);
+                }
+            });
+    
+            // Center/radius
+            circle = L.circle([lat, lng], {radius: rad, color: '#2a7', fillOpacity: 0.05}).addTo(map);
+            L.marker([lat, lng], {title: 'Center'}).addTo(layerGroup).bindPopup('Center POI');
+    
+            if (bounds.length) {
+                map.fitBounds(L.latLngBounds(bounds), { padding: [20, 20] });
+            } else {
+                map.setView([lat, lng], 15);
+            }
+        }
+    
+        document.getElementById('btn').addEventListener('click', search);
+        search();
+    </script>
+</body>
+</html>

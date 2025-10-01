@@ -19,6 +19,13 @@ builder.Services.AddHttpClient<IDenueClient, DenueClient>(c =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy("AllowFrontend", p =>
+        p.WithOrigins("http://localhost:63342")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
@@ -30,6 +37,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
+app.UseCors("AllowFrontend");
 
 app.MapGet("/", () => Results.Text("HEALTHY", "text/plain"));
 
