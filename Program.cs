@@ -1,18 +1,37 @@
+using inegi.Services;
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Options para token
+builder.Services.Configure<InegiOptions>(
+    builder.Configuration.GetSection("Inegi"));
+
+// HttpClient
+builder.Services.AddHttpClient<IDenueClient, DenueClient>(c =>
+{
+    c.BaseAddress = new Uri("https://www.inegi.org.mx/app/api/denue/v1/consulta/");
+    c.Timeout = TimeSpan.FromSeconds(30);
+});
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
+
+app.MapGet("/", () => Results.Text("HEALTHY", "text/plain"));
 
 app.Run();
 
