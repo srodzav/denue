@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.vs/
+.git
+.gitignore
+README.md
+*.user
+*.suo
+*.pdb
+node_modules/
+out/
