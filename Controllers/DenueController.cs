@@ -19,18 +19,25 @@ public sealed class DenueController : ControllerBase
         [FromQuery] double lng,
         [FromQuery] int radius = 1000) // 1 km
     {
-        var results = await _client.SearchNearbyAsync(query, lat, lng, radius, HttpContext.RequestAborted);
-
-        // Ordenar por distancia (Haversine)
-        foreach (var r in results)
+        try
         {
-            if (r.Latitud is { } la && r.Longitud is { } lo)
-                r.DistanceMeters = Haversine(lat, lng, la, lo);
-        }
+            var results = await _client.SearchNearbyAsync(query, lat, lng, radius, HttpContext.RequestAborted);
 
-        return Ok(results.Where(r => r.DistanceMeters.HasValue)
-            .OrderBy(r => r.DistanceMeters)
-            .ToList());
+            // Ordenar por distancia (Haversine)
+            foreach (var r in results)
+            {
+                if (r.Latitud is { } la && r.Longitud is { } lo)
+                    r.DistanceMeters = Haversine(lat, lng, la, lo);
+            }
+
+            return Ok(results.Where(r => r.DistanceMeters.HasValue)
+                .OrderBy(r => r.DistanceMeters)
+                .ToList());
+        }
+        catch (HttpRequestException ex)
+        {
+            return Ok(Array.Empty<DenuePlace>());
+        }
     }
 
     private static double Haversine(double lat1, double lon1, double lat2, double lon2)

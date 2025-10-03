@@ -22,7 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowFrontend", p =>
-        p.WithOrigins("http://localhost:63342", "https://denue.sebastianrdz.com")
+        p.WithOrigins("https://denue.sebastianrdz.com/")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -35,9 +35,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-app.MapControllers();
 app.UseCors("AllowFrontend");
+app.MapControllers();
 
 app.MapGet("/", () => Results.Text("HEALTHY", "text/plain"));
 

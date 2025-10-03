@@ -44,7 +44,8 @@ public sealed class DenueClient : IDenueClient
         var url = $"Buscar/{q}/{lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{lng.ToString(System.Globalization.CultureInfo.InvariantCulture)}/{radiusMeters}/{_token}";
 
         using var resp = await _http.GetAsync(url, ct);
-        resp.EnsureSuccessStatusCode();
+        if (!resp.IsSuccessStatusCode)
+            return Array.Empty<DenuePlace>();
 
         var data = await resp.Content.ReadFromJsonAsync<List<DenuePlace>>(_json, ct)
                    ?? new List<DenuePlace>();
