@@ -37,6 +37,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 app.MapControllers();
+app.MapControllers().RequireCors("AllowFrontend");
 
 app.MapGet("/", () => Results.Text("HEALTHY", "text/plain"));
 
