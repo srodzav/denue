@@ -41,14 +41,27 @@ public sealed class DenueClient : IDenueClient
             throw new ArgumentOutOfRangeException(nameof(radiusMeters), "Radio entre 1 y 5000 m.");
 
         var q = Uri.EscapeDataString(query);
-        var url = $"Buscar/{q}/{lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{lng.ToString(System.Globalization.CultureInfo.InvariantCulture)}/{radiusMeters}/{_token}";
+        var url =
+            $"Buscar/{q}/{lat.ToString(System.Globalization.CultureInfo.InvariantCulture)},{lng.ToString(System.Globalization.CultureInfo.InvariantCulture)}/{radiusMeters}/{_token}";
+        try
+        {
+            using var resp = await _http.GetAsync(url, ct);
 
-        using var resp = await _http.GetAsync(url, ct);
-        if (!resp.IsSuccessStatusCode)
+            // Si INEGI responde 429/5xx/404 → tratar como sin resultados
+            if (!resp.IsSuccessStatusCode)
+                return Array.Empty<DenuePlace>();
+
+            var data = await resp.Content.ReadFromJsonAsync<List<DenuePlace>>(_json, ct)
+                       ?? new List<DenuePlace>();
+            return data;
+        }
+        catch (OperationCanceledException) // incluye TaskCanceledException por timeout
+        {
             return Array.Empty<DenuePlace>();
-
-        var data = await resp.Content.ReadFromJsonAsync<List<DenuePlace>>(_json, ct)
-                   ?? new List<DenuePlace>();
-        return data;
+        }
+        catch (HttpRequestException)
+        {
+            return Array.Empty<DenuePlace>();
+        }
     }
 }

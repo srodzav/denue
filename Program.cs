@@ -15,7 +15,9 @@ builder.Services.Configure<InegiOptions>(
 builder.Services.AddHttpClient<IDenueClient, DenueClient>(c =>
 {
     c.BaseAddress = new Uri("https://www.inegi.org.mx/app/api/denue/v1/consulta/");
-    c.Timeout = TimeSpan.FromSeconds(30);
+    c.Timeout = TimeSpan.FromSeconds(12);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("denue-demo/1.0 (+https://denue.sebastianrdz.com)");
+    c.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 });
 
 builder.Services.AddControllers();

@@ -34,6 +34,10 @@ public sealed class DenueController : ControllerBase
                 .OrderBy(r => r.DistanceMeters)
                 .ToList());
         }
+        catch (OperationCanceledException)
+        {
+            return Ok(Array.Empty<DenuePlace>());
+        }
         catch (HttpRequestException ex)
         {
             return Ok(Array.Empty<DenuePlace>());
