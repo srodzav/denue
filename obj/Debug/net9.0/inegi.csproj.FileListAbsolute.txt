@@ -34,3 +34,9 @@
 /Users/sebastian/code/inegi/obj/Debug/net9.0/inegi.pdb
 /Users/sebastian/code/inegi/obj/Debug/net9.0/inegi.genruntimeconfig.cache
 /Users/sebastian/code/inegi/obj/Debug/net9.0/ref/inegi.dll
+/Users/sebastian/code/inegi/bin/Debug/net9.0/out/web.config
+/Users/sebastian/code/inegi/bin/Debug/net9.0/out/appsettings.Development.json
+/Users/sebastian/code/inegi/bin/Debug/net9.0/out/appsettings.json
+/Users/sebastian/code/inegi/bin/Debug/net9.0/out/inegi.deps.json
+/Users/sebastian/code/inegi/bin/Debug/net9.0/out/inegi.runtimeconfig.json
+/Users/sebastian/code/inegi/bin/Debug/net9.0/out/inegi.staticwebassets.endpoints.json

@@ -22,9 +22,20 @@ builder.Services.AddControllers();
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowFrontend", p =>
-        p.WithOrigins("https://denue.sebastianrdz.com/")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+        p.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrEmpty(origin)) return false;
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri)) return false;
+
+            if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                return uri.Port == 63342 || uri.Port == 5173 || uri.Port == 5163;
+
+            return uri.Host.Equals("denue.sebastianrdz.com", StringComparison.OrdinalIgnoreCase)
+                   || uri.Host.EndsWith(".sebastianrdz.com", StringComparison.OrdinalIgnoreCase);
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+    );
 });
 
 var app = builder.Build();

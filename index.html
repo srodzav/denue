@@ -216,7 +216,7 @@
 <script>
     // Change to your backend route
     const API_BASE = "https://denue-api.onrender.com";
-
+    
     const loading = document.getElementById('loading');
     const loadingText = document.getElementById('loadingText');
 
@@ -403,7 +403,7 @@
                 }
                 statusEl.textContent = `No se encontraron datos para “${q}” en ${radius} m.`;
             } else {
-                console.error(err);
+                console.error("ERROR", err);
                 alert("Error al consultar la API. Revisa la consola y que tu backend esté corriendo.");
                 statusEl.textContent = 'Error al consultar';
             }
