@@ -329,7 +329,9 @@
         const url = `${API_BASE}/denue/search?query=${encodeURIComponent(q)}&lat=${center.lat}&lng=${center.lng}&radius=${radius}`;
 
         let slowTimer;
-
+        let controller;
+        let timeoutId;
+        
         try {
             searchBtn.disabled = true;
             searchBtn.textContent = 'Buscando...';
@@ -341,8 +343,20 @@
                 loadingText.textContent = 'No cierres la pagina…';
             }, 1000);
 
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            controller = new AbortController();
+            timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            const res = await fetch(url, { signal: controller.signal });
+            if (!res.ok) {
+                resultsLayer.clearLayers();
+                if (searchCircle) {
+                    map.fitBounds(searchCircle.getBounds(), { padding: [24,24] });
+                } else {
+                    map.setView(center, 15);
+                }
+                statusEl.textContent = `No se encontraron datos para “${q}” en ${radius} m.`;
+                return;
+            }
             const data = await res.json(); // places
 
             resultsLayer.clearLayers();
@@ -372,15 +386,30 @@
                 map.fitBounds(all, { padding: [24,24] });
                 statusEl.textContent = `Resultados: ${bounds.length} • Centro ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} • Radio ${radius} m`;
             } else {
-                map.setView(center, 15);
-                statusEl.textContent = `Sin resultados • Centro ${center.lat.toFixed(5)}, ${center.lng.toFixed(5)} • Radio ${radius} m`;
+                if (searchCircle) {
+                    map.fitBounds(searchCircle.getBounds(), { padding: [24,24] });
+                } else {
+                    map.setView(center, 15);
+                }
+                statusEl.textContent = `No se encontraron datos para “${q}” en ${radius} m.`;
             }
         } catch (err) {
-            console.error(err);
-            alert("Error al consultar la API. Revisa la consola y que tu backend esté corriendo.");
-            statusEl.textContent = 'Error al consultar';
+            if (err && err.name === 'AbortError') {
+                resultsLayer.clearLayers();
+                if (searchCircle) {
+                    map.fitBounds(searchCircle.getBounds(), { padding: [24,24] });
+                } else {
+                    map.setView(center, 15);
+                }
+                statusEl.textContent = `No se encontraron datos para “${q}” en ${radius} m.`;
+            } else {
+                console.error(err);
+                alert("Error al consultar la API. Revisa la consola y que tu backend esté corriendo.");
+                statusEl.textContent = 'Error al consultar';
+            }
         } finally {
             if (slowTimer) clearTimeout(slowTimer);
+            if (timeoutId) clearTimeout(timeoutId);
             loading.classList.remove('show');
             loadingText.textContent = 'Cargando…';
             searchBtn.disabled = false;
